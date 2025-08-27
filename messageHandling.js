@@ -24,9 +24,10 @@ async function handleIncomingMessage(payload) {
   if (!estadoUsuario[from]) {
     estadoUsuario[from] = {
       pasoActual: "bienvenida", // bienvenida - menuPrincipal - compra - categorias - consulta - Finalizar
-      // Para una compra
+      // Para hacer una compra
       idProducto: "",
       compraTotal: "",
+      // Para hacer una consulta
       folioCompra: "",
     };
   }
@@ -37,7 +38,7 @@ async function handleIncomingMessage(payload) {
     "hola", "buen día", "buenos días", "buenas tardes", "buenas noches", "qué tal", "cómo estás", "hola, estoy interesado", "información", "quiero comprar", "tengo una duda", "servicio", "producto", "precio", "necesito"
   ];
 
-  // Detectando el saludo inicial.
+  // Saludo inicial.
   if (saludos.some(saludo => text.toLowerCase().includes(saludo))) {
     await enviarMensajeTexto(from,
       "¡Hola! Bienvenido a mi *Tienda*.\n" +
@@ -45,28 +46,46 @@ async function handleIncomingMessage(payload) {
       "1 - Comprar\n" +
       "2 - Consultar\n" +
       "3 - Salir" +
-      "Elige un número o escribe la opción"
+      "Elige un número o escribe la opción."
     );
     estado.pasoActual = "menuPricipal";
     return;
   }
 
-  // Partiendo desde el Menú principal.
+  // Menú principal.
   if (estado.pasoActual === "menuPrincipal") {
+    if (text.toLowerCase().includes("1") || text.toLowerCase().includes("comprar")) {
+      await enviarMensajeTexto(from,
+        "Selecciona una categoría:\n" +
+        "1 - Línea blanca\n" +
+        "2 - Electrónica\n" +
+        "3 - Regresar al menú principal" +
+        "Elige un número o escribe la opción."
+      );
+      estado.pasoActual = "categorias";
 
-  } else if (estado.pasoActual === "compra") {
+    } else if (text.toLowerCase().includes("2") || text.toLowerCase().includes("consulta")) {
+      await enviarMensajeTexto(from,
+        "Has elegido *Consultar*.\n\n" +
+        "Por favor escribe el *folio de tu compra*.\n" +
+        "O escribe 'Salir' o 'Regresar' para volver al menú principal."
+      );
+      estado.pasoActual = "consulta";
 
-  } else if (estado.pasoActual === "categorias") {
+    } else if (text.toLowerCase().includes("3") || text.toLowerCase().includes("salir")) {
+      await enviarMensajeTexto(from,
+        "¡Gracias por tu visita! Vuelve pronto."
+      );
+      delete estadoUsuario[from];
+    } else {
+      await enviarMensajeTexto(from,
+        "Opción no válida.\n\nElige una de las opciones:\n" +
+        "1 - Comprar\n" +
+        "2 - Consultar\n" +
+        "3 - Salir"
+      );
+    }
 
-  } else if (estado.pasoActual === "consulta") {
-
-  } else if (estado.pasoActual === "finalizar") {
-
-  } else {
-    // Manejo de las opciones no validas.
-    await enviarMensajeTexto(from, "Opción no valida. Por favor, elige una de las opciones disponibles.");
-    return;
   }
 }
-
 module.exports = handleIncomingMessage;
