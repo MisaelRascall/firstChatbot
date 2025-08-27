@@ -18,12 +18,15 @@ async function handleIncomingMessage(payload) {
   if (!message) return;
 
   const from = message.from;
+  const text = message.text?.body || "";
+
+  // Iniciando el estado si no existe.
   if (!estadoUsuario[from]) {
     estadoUsuario[from] = {
       pasoActual: "bienvenida", // bienvenida - menuPrincipal - compra - categorias - consulta - Finalizar
       // Para una compra
       idProducto: "",
-      precioProducto: "",
+      compraTotal: "",
       folioCompra: "",
     };
   }
@@ -34,24 +37,34 @@ async function handleIncomingMessage(payload) {
     "hola", "buen día", "buenos días", "buenas tardes", "buenas noches", "qué tal", "cómo estás", "hola, estoy interesado", "información", "quiero comprar", "tengo una duda", "servicio", "producto", "precio", "necesito"
   ];
 
-  if(saludos.some(saludo => text.toLowerCase().include(saludo))){
-    const bienvenida = 
-    "¡Hola! Bienvenido a mi Tienda.\n"+
-    "¿En qué puedo ayudarte hoy?\n"+
-    "1 - Comprar\n"+
-    "2 - Consultar\n"+
-    "3 - Salir"+
-    "Elige un número o escribe la opción";
-
-    await enviarMensajeTexto(from, bienvenida);
-
+  // Detectando el saludo inicial.
+  if (saludos.some(saludo => text.toLowerCase().includes(saludo))) {
+    await enviarMensajeTexto(from,
+      "¡Hola! Bienvenido a mi *Tienda*.\n" +
+      "¿En qué puedo ayudarte hoy?\n" +
+      "1 - Comprar\n" +
+      "2 - Consultar\n" +
+      "3 - Salir" +
+      "Elige un número o escribe la opción"
+    );
     estado.pasoActual = "menuPricipal";
     return;
   }
 
-  // Manejo de opciones no validas
-  if (estado.pasoActual !== "bienvenida") {
-    await enviarMensajeTexto(from, "Opción no valida. Por favor, elige una de las opciones disponibles.")
+  // Partiendo desde el Menú principal.
+  if (estado.pasoActual === "menuPrincipal") {
+
+  } else if (estado.pasoActual === "compra") {
+
+  } else if (estado.pasoActual === "categorias") {
+
+  } else if (estado.pasoActual === "consulta") {
+
+  } else if (estado.pasoActual === "finalizar") {
+
+  } else {
+    // Manejo de las opciones no validas.
+    await enviarMensajeTexto(from, "Opción no valida. Por favor, elige una de las opciones disponibles.");
     return;
   }
 }
