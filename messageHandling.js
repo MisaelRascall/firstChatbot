@@ -20,7 +20,7 @@ async function handleIncomingMessage(payload) {
   const from = message.from;
   if (!estadoUsuario[from]) {
     estadoUsuario[from] = {
-      pasoActual: "inicio",
+      pasoActual: "bienvenida", // bienvenida - menuPrincipal - compra - categorias - consulta - Finalizar
       // Para una compra
       idProducto: "",
       precioProducto: "",
@@ -34,8 +34,23 @@ async function handleIncomingMessage(payload) {
     "hola", "buen día", "buenos días", "buenas tardes", "buenas noches", "qué tal", "cómo estás", "hola, estoy interesado", "información", "quiero comprar", "tengo una duda", "servicio", "producto", "precio", "necesito"
   ];
 
+  if(saludos.some(saludo => text.toLowerCase().include(saludo))){
+    const bienvenida = 
+    "¡Hola! Bienvenido a mi Tienda.\n"+
+    "¿En qué puedo ayudarte hoy?\n"+
+    "1 - Comprar\n"+
+    "2 - Consultar\n"+
+    "3 - Salir"+
+    "Elige un número o escribe la opción";
+
+    await enviarMensajeTexto(from, bienvenida);
+
+    estado.pasoActual = "menuPricipal";
+    return;
+  }
+
   // Manejo de opciones no validas
-  if (estadoUsuario[from].pasoActual !== "inicio") {
+  if (estado.pasoActual !== "bienvenida") {
     await enviarMensajeTexto(from, "Opción no valida. Por favor, elige una de las opciones disponibles.")
     return;
   }
