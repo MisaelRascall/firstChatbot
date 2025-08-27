@@ -23,7 +23,7 @@ async function handleIncomingMessage(payload) {
   // Iniciando el estado si no existe.
   if (!estadoUsuario[from]) {
     estadoUsuario[from] = {
-      pasoActual: "bienvenida", // bienvenida - menuPrincipal - compra - categorias - consulta - Finalizar
+      pasoActual: "bienvenida", // bienvenida - menuPrincipal - compra - categoria - consulta - Finalizar
       // Para hacer una compra
       idProducto: "",
       compraTotal: "",
@@ -62,7 +62,47 @@ async function handleIncomingMessage(payload) {
         "3 - Regresar al menú principal" +
         "Elige un número o escribe la opción."
       );
-      estado.pasoActual = "categorias";
+      estado.pasoActual = "categoria";
+
+      if (text.toLowerCase().includes("1") || text.toLowerCase().includes("linea blanca")) {
+        await enviarMensajeTexto(from,
+          "Has elegido *Línea blanca*.\n\n" +
+          "Selecciona un producto:\n" +
+          "1 - Lavadora Mabe, Precio: $8500, Color: Blanco\n" +
+          "2 - Secadora Mabe, Precio: $10000, Color: Negro\n" +
+          "3 - Regresar al menú principal" +
+          "Elige un número o escribe la opción."
+        );
+        estado.pasoActual = "productoSeleccionado";
+        estado.categoria = "lineaBlanca";
+
+      } else if (text.toLowerCase().includes("2") || text.toLowerCase().includes("electronica")) {
+        await enviarMensajeTexto(from,
+          "Has elegido *Electrónica*.\n\n" +
+          "Selecciona un producto:\n" +
+          "1 - iPhone, Precio: $20000\n" +
+          "2 - Tableta Lenovo, Precio: $8000\n" +
+          "3 - Regresar al menú principal" +
+          "Elige un número o escribe la opción."
+        );
+        estado.pasoActual = "productoSeleccionado";
+        estado.categoria = "electronica";
+
+      } else if (text.toLowerCase().includes("3") || text.toLowerCase().includes("regresar")) {
+        await enviarMensajeTexto(from,
+          "Regresando al menú principal..."
+        );
+        estado.pasoActual = "menuPrincipal";
+
+      } else {
+        await enviarMensajeTexto(from,
+          "Opción no valida.\n" +
+          "1 - Línea blanca\n" +
+          "2 - Electrónica\n" +
+          "3 - Salir\n" +
+          "Elige un número o escribe la opción."
+        );
+      }
 
     } else if (text.toLowerCase().includes("2") || text.toLowerCase().includes("consulta")) {
       await enviarMensajeTexto(from,
