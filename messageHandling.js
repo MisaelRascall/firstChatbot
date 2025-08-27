@@ -23,7 +23,8 @@ async function handleIncomingMessage(payload) {
   // Iniciando el estado si no existe.
   if (!estadoUsuario[from]) {
     estadoUsuario[from] = {
-      pasoActual: "bienvenida", // bienvenida - menuPrincipal - comprar - categorias - consultar - mostrarCompra - Finalizar
+      pasoActual: "bienvenida", // bienvenida - menuPrincipal - comprar - consultar - mostrarCompra - Finalizar
+      categoria: "",
     };
   }
   const estado = estadoUsuario[from];
@@ -39,33 +40,64 @@ async function handleIncomingMessage(payload) {
     "hola", "buen día", "buenos días", "buenas tardes", "buenas noches", "qué tal", "cómo estás", "hola, estoy interesado", "información", "quiero comprar", "tengo una duda", "servicio", "producto", "precio", "necesito"
   ];
 
-  // Bienvenida.
-  if (saludos.some(saludo => text.toLowerCase().includes(saludo))) {
+  // Flujo de bienvenida.
+  if (estado.pasoActual === "bienvenida") {
+    if (saludos.some(saludo => text.toLowerCase().includes(saludo))) {
+      await enviarMensajeTexto(from,
+        "¡Hola! Bienvenido a mi *Tienda*.\n" +
+        "Te mostraré el menú principal."
+      );
+    }
+    estado.pasoActual = "menuPrincipal";
+
+    // Flujo de menú principal
+  } else if (estado.pasoActual === "menuPrincipal") {
     await enviarMensajeTexto(from,
-      "¡Hola! Bienvenido a mi *Tienda*.\n" +
-      "¿En qué puedo ayudarte hoy?\n" +
+      "Elige un número o escribe la opción.\n" +
+      "¿En qué puedo ayudarte?\n" +
       "1 - Comprar\n" +
       "2 - Consultar\n" +
-      "3 - Salir" +
-      "Elige un número o escribe la opción."
+      "3 - Salir"
     );
-    estado.pasoActual = "menuPrincipal";
-  } // Continua el flujo
 
-  // Menú principal.
-  if (estado.pasoActual === "menuPrincipal") {
-    if (text.toLowerCase().includes("1") || text.toLowerCase().includes("comprar")) {
+    if (text === "1" || text.toLowerCase().includes("comprar")) {
       await enviarMensajeTexto(from,
-        "Elige una *Categoría*:\n" +
-        "1 - Linea blanca\n" +
-        "2 - Electronica\n" +
-        "O puedes regresar al menú principal escribiendo la palabra regresar"
+        "Has elegido la opción *Comprar*.\n\n" +
+        "Selecciona una categoría:\n" +
+        "1. Electrónica\n" +
+        "2. Línea Blanca"
       );
       estado.pasoActual = "comprar";
-      return;
+
+    } else if (text === "2" || text.toLowerCase().includes("consultar")) {
+      await enviarMensajeTexto(from,
+        "Has elegido la opción *Consultar*.\n" +
+        "Por favor escribe el *folio de tu compra*.\n" +
+        "O escribe 'Salir' para terminar la conversación."
+      );
+      estado.pasoActual = "consultar";
+
+    } else if (text === "3" || text.toLowerCase().includes("salir")) {
+      await enviarMensajeTexto(from,
+        "¡Gracias por tu visita!"
+      );
+      estado.pasoActual = "finalizado";
+
+    } else {
+      await enviarMensajeTexto(from,
+        "No entendí tu respuesta. Por favor selecciona una opción:\n\n" +
+        "1. Comprar\n" +
+        "2. Consultar\n" +
+        "3. Salir"
+      );
     }
-  }else if(estado.pasoActual === "menuPrincipal"){
-    // ENCERRAR LA BIENVENIDA EN OTRA CONDICION PARA LEER estado.pasoActual === "bienvenida"
+    // Flujo de menú comprar
+  } else if (estado.pasoActual === "comprar") {
+    if(text === "1"){
+      await enviarMensajeTexto(from, 
+        "Has elegido la opción *Categorias*"
+      );
+    }
   }
 }
 module.exports = handleIncomingMessage;
