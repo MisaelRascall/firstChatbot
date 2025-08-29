@@ -4,8 +4,9 @@ const {
   enviarMensajeTexto,
   enviarPlantillaImagen
 } = require("./whatsappTemplates");
+const { env } = require("process");
 
-// Estado de la Compra
+// Reiniciando el estado
 const estadoUsuario = {};
 
 async function handleIncomingMessage(payload) {
@@ -18,86 +19,127 @@ async function handleIncomingMessage(payload) {
   if (!message) return;
 
   const from = message.from; //número del usuario
-  const text = message.text?.body || ""; //mensaje recibido
+  const text = message.text?.body?.toLowerCase() || ""; //mensaje recibido
 
   // Iniciando el estado si no existe.
   if (!estadoUsuario[from]) {
     estadoUsuario[from] = {
-      pasoActual: "bienvenida", // bienvenida - menuPrincipal - comprar - consultar - mostrarCompra - Finalizar
+      pasoActual: "Bienvenida",
       categoria: "",
+      producto: "",
+      respuesta: "",
+      folio: "",
     };
   }
-  const estado = estadoUsuario[from];
+  const estado = estadoUsuario[from]; // Alias de estadoUsuario
 
-  // Ejemplo simulado de bd
-  const compras = {
-    "ABC123": { producto: "iPhone", precio: 20000 },
-    "XYZ789": { producto: "Lavadora Mabe", precio: 8500 }
-  };
-
-  // Palabras clave frecuentes para iniciar la conversación
+  // Palabras clave 
   const saludos = [
     "hola", "buen día", "buenos días", "buenas tardes", "buenas noches", "qué tal", "cómo estás", "hola, estoy interesado", "información", "quiero comprar", "tengo una duda", "servicio", "producto", "precio", "necesito"
   ];
 
-  // Flujo de bienvenida.
-  if (estado.pasoActual === "bienvenida") {
-    if (saludos.some(saludo => text.toLowerCase().includes(saludo))) {
-      await enviarMensajeTexto(from,
-        "¡Hola! Bienvenido a mi *Tienda*.\n" +
-        "Te mostraré el menú principal."
-      );
-    }
-    estado.pasoActual = "menuPrincipal";
+  const categoria1 = [
+    "línea", "linea", "blanca",
+  ];
 
-    // Flujo de menú principal
-  } else if (estado.pasoActual === "menuPrincipal") {
+  const categoria2 = [
+    "electronica", electrónica,
+  ];
+
+  // 1 - Bienvenida
+  if (saludos.some(saludo => text.includes(saludo)) && estado.pasoActual === "bienvenida") {
     await enviarMensajeTexto(from,
-      "Elige un número o escribe la opción.\n" +
-      "¿En qué puedo ayudarte?\n" +
+      "!Hola¡ Bienvenido a *Mi Tienda*."
+    );
+
+    estado.pasoActual = "menuPrincipal";
+  }
+
+  // 2 - Menú principal
+  if (estado.pasoActual === "menuPrincipal") {
+    await enviarMensajeTexto(from,
+      "Elige un número o escribe la opción:\n" +
       "1 - Comprar\n" +
       "2 - Consultar\n" +
       "3 - Salir"
     );
 
-    if (text === "1" || text.toLowerCase().includes("comprar")) {
+    estado.pasoActual = "eligiendoOpcion";
+    return;
+  }
+
+  // 3 - Esperando respuesta al menú
+  if (estado.pasoActual === "eligiendoOpcion") {
+    // 3.1 - Menú comprar
+    if (text.includes("1") || text.includes("comprar")) {
       await enviarMensajeTexto(from,
-        "Has elegido la opción *Comprar*.\n\n" +
-        "Selecciona una categoría:\n" +
-        "1. Electrónica\n" +
-        "2. Línea Blanca"
+        "Estas dentro del menú de *Compras*:\n" +
+        "Selecciona el número o escribe la opción que deseas.\n" +
+        "1 - Linea blanca\n" +
+        "2 - Electronica\n" +
+        "3 - Regresar al menú principal"
       );
       estado.pasoActual = "comprar";
 
-    } else if (text === "2" || text.toLowerCase().includes("consultar")) {
-      await enviarMensajeTexto(from,
-        "Has elegido la opción *Consultar*.\n" +
-        "Por favor escribe el *folio de tu compra*.\n" +
-        "O escribe 'Salir' para terminar la conversación."
-      );
-      estado.pasoActual = "consultar";
+      // Averiguar como hacer el flujo para cuando el cliente elige la opción 3
 
-    } else if (text === "3" || text.toLowerCase().includes("salir")) {
+    } else if (text.includes("2") || text.includes("consultar")) {
+      estado.pasoActual = "consultar";
+    } else if (text.includes("3") || text.includes("salir")) {
+      await enviarMensajeTexto(from, "¡Gracias por tu visita!")
+      delete estadoUsuario[from]; // Borra el estado de un cliente específico.
+      return;
+    } else {
+      await enviarMensajeTexto(from, "Opción no valida, por favor escribe 1, 2 o 3.")
+    }
+    return;
+  }
+
+  if (estado.pasoActual === "comprar") {
+    // 3.1.1 Menú línea blanca
+    if (text.includes("1") || categoria1.some(c => text.includes(c))) {
       await enviarMensajeTexto(from,
-        "¡Gracias por tu visita!"
+        "Elije el *Producto* que quieres comprar:\n" +
+        "1 - Lavadora Mabe\n" +
+        "2 - Secadora Mabe\n" +
+        "3 - Regresar al menú principal"
       );
-      estado.pasoActual = "finalizado";
+      estado.pasoActual = "lineaBlanca";
+    } else if (text.includes("2") || categoria2.some(c => text.includes(c))) {
+      // 3.1.2 Menú electrónica
+      await enviarMensajeTexto(from,
+        "Elije el *Producto* que quieres comprar:\n" +
+        "1 - iPhone\n" +
+        "2 - Tableta Lenovo\n" +
+        "3 - Regresar al menú principal"
+      );
+      estado.pasoActual = "electronica";
+    }
+  } else if(text.includes("3") || text.includes("regresar")){
+    await enviarMensajeTexto(from,
+      "Elige un número o escribe la opción:\n" +
+      "1 - Comprar\n" +
+      "2 - Consultar\n" +
+      "3 - Salir"
+    );
+    estado.pasoActual = "eligiendoOpcion";
+  }
+
+  if(estado.pasoActual == "lineaBlanca") {
+    // 3.1.1.1 Producto lavadora
+    if(text.includes("1") || text.includes("lavadora")){
+
+    }else if(text.includes("2") || text.includes("secadora")){
+
+    }else if(text.includes("3") || text.includes("regresar")){
 
     } else {
       await enviarMensajeTexto(from,
-        "No entendí tu respuesta. Por favor selecciona una opción:\n\n" +
-        "1. Comprar\n" +
-        "2. Consultar\n" +
-        "3. Salir"
+        "Opción no valida, por favor escribe 1, 2 o 3."
       );
     }
-    // Flujo de menú comprar
-  } else if (estado.pasoActual === "comprar") {
-    if(text === "1"){
-      await enviarMensajeTexto(from, 
-        "Has elegido la opción *Categorias*"
-      );
-    }
+
   }
+
 }
 module.exports = handleIncomingMessage;
