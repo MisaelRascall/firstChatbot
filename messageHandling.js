@@ -43,7 +43,15 @@ async function handleIncomingMessage(payload) {
   ];
 
   const categoria2 = [
-    "electronica", electrónica,
+    "electronica", "electrónica",
+  ];
+
+  const electronica1 = [
+    "celular", "iphone",
+  ];
+
+  const electronica2 = [
+    "tableta", "lenovo",
   ];
 
   // 1 - Bienvenida
@@ -70,8 +78,8 @@ async function handleIncomingMessage(payload) {
 
   // 3 - Esperando respuesta al menú
   if (estado.pasoActual === "eligiendoOpcion") {
-    // 3.1 - Menú comprar
     if (text.includes("1") || text.includes("comprar")) {
+      // 3.1 - Menú comprar
       await enviarMensajeTexto(from,
         "Estas dentro del menú de *Compras*:\n" +
         "Selecciona el número o escribe la opción que deseas.\n" +
@@ -83,6 +91,10 @@ async function handleIncomingMessage(payload) {
 
     } else if (text.includes("2") || text.includes("consultar")) {
       // 3.2 - Menú consultar
+      await enviarMensajeTexto(from,
+        "Estas dentro del menú para *Consultar compra*:\n" +
+        "Escribe la clave alfanúmerica de tu *folio* para buscar tu compra."
+      );
       estado.pasoActual = "consultar";
     } else if (text.includes("3") || text.includes("salir")) {
       // 3.3 - Salida del flujo
@@ -97,8 +109,8 @@ async function handleIncomingMessage(payload) {
   }
 
   if (estado.pasoActual === "comprar") {
-    // 3.1.1 Menú línea blanca
     if (text.includes("1") || categoria1.some(c => text.includes(c))) {
+      // 3.1.1 Menú línea blanca
       await enviarMensajeTexto(from,
         "Elije el *Producto* que quieres comprar:\n" +
         "1 - Lavadora Mabe\n" +
@@ -110,7 +122,7 @@ async function handleIncomingMessage(payload) {
       // 3.1.2 Menú electrónica
       await enviarMensajeTexto(from,
         "Elije el *Producto* que quieres comprar:\n" +
-        "1 - iPhone\n" +
+        "1 - Celular iPhone\n" +
         "2 - Tableta Lenovo\n" +
         "3 - Regresar al menú principal"
       );
@@ -131,15 +143,40 @@ async function handleIncomingMessage(payload) {
     }
   }
 
+  if (estado.pasoActual === "consultar") {
+    // 3.2.1 Menú consultar
+    if (!folio) {
+      await enviarMensajeTexto(from,
+        "Estos son los datos de su compra:\n" +
+        "DATOS\n" +
+        "¿Quieres hacer otra operación? *Si*/*No*"
+      );
+    } else if (text.includes("si")) {
+      await enviarMensajeTexto(from,
+        "Elige un número o escribe la opción:\n" +
+        "1 - Comprar\n" +
+        "2 - Consultar\n" +
+        "3 - Salir"
+      );
+      estado.pasoActual = "eligiendoOpcion";
+    } else if (text.includes("no")) {
+      await enviarMensajeTexto(from,
+        "¡Gracias por tu visita!\n" +
+        "Te esperamos pronto."
+      );
+    }
+  }
+
   if (estado.pasoActual == "lineaBlanca") {
-    // 3.1.1.1 Producto lavadora.
     if (text.includes("1") || text.includes("lavadora")) {
+      // 3.1.1.1 Producto lavadora.
       await enviarMensajeTexto(from,
         "Estos son los datos de la Lavadora:\n" +
         "Producto: Lavadora Mabe\n" +
         "Precio:$ 8500\n" +
         "Color: Blanco\n" +
-        "Responde si para comprar el producto o regresar para repetir el menú principal."
+        "Responde *Si* para comprar o *No* para cancelar el producto\n" +
+        "O escribe regresar para repetir el menú principal"
       );
       estado.pasoActual = "comprarLavadora";
 
@@ -150,7 +187,7 @@ async function handleIncomingMessage(payload) {
         "Producto: Secadora Mabe\n" +
         "Precio:$ 10000\n" +
         "Color: Negro\n" +
-        "Responde si para comprar o no para cancelar el producto\n" +
+        "Responde *Si* para comprar o *No* para cancelar el producto\n" +
         "O escribe regresar para repetir el menú principal"
       );
       estado = "comprarSecadora";
@@ -171,8 +208,8 @@ async function handleIncomingMessage(payload) {
   }
 
   if (estado.pasoActual === "comprarLavadora") {
-    // 3.1.1.1.1 Respondiendo "Si" a la comra.
     if (text.includes("si")) {
+      // 3.1.1.1.1 Respondiendo "Si" a la comra.
       await enviarMensajeTexto(from,
         "¡Gracias! Compra realizada."
       );
@@ -221,7 +258,95 @@ async function handleIncomingMessage(payload) {
     }
   }
 
-// Definiendo el flujo de comprar categoria electrónica
+  if (estado.pasoActual === "electronica") {
+    // 3.1.2.1 Producto iPhone
+    if (text.includes("1") || electronica1.some(e => text.includes(e))) {
+      await enviarMensajeTexto(from,
+        "Estos son los datos del Celular iPhone:\n" +
+        "Producto: iPhone\n" +
+        "Precio:$ 19000\n" +
+        "Color: Blanco\n" +
+        "Responde *Si* para comprar o *No* para cancelar el producto\n" +
+        "O escribe regresar para repetir el menú principal"
+      );
+      estado.pasoActual = "comprarIPhone";
+    } else if (text.includes("2") || electronica2.some(e => text.includes(e))) {
+      // 3.1.2.2 Producto Tableta
+      await enviarMensajeTexto(from,
+        "Estos son los datos de la Tableta Lenovo:\n" +
+        "Producto: Tableta\n" +
+        "Precio:$ 2700\n" +
+        "Color: Negro\n" +
+        "Responde *Si* para comprar o *No* para cancelar el producto\n" +
+        "O escribe regresar para repetir el menú principal"
+      );
+      estado.pasoActual = "comrarTableta";
+    } else if (text.includes("3") || text.includes("regresar")) {
+      // 3.1.2.3 Regresando al menú principal
+      await enviarMensajeTexto(from,
+        "Elige un número o escribe la opción:\n" +
+        "1 - Comprar\n" +
+        "2 - Consultar\n" +
+        "3 - Salir"
+      );
+      estado.pasoActual = "eligiendoOpcion";
+    } else {
+      await enviarMensajeTexto(from,
+        "Opción no valida, por favor escribe 1, 2 o 3."
+      );
+    }
+  }
+
+  if (estado.pasoActual === "comprarIPhone") {
+    if (text.includes("si")) {
+      // 3.1.2.1.1 Respondiendo "Si" a la compra
+      await enviarMensajeTexto(from,
+        "¡Gracias! Compra realizada."
+      );
+      delete estadoUsuario[from];
+    } else if (text.includes("no")) {
+      // 3.1.2.1.2 Respondiendo "No" a la compra
+      await enviarMensajeTexto(from,
+        "Esta bien. ¡Gracias por visitarnos!"
+      );
+      delete estadoUsuario[form];
+    } else {
+      await enviarMensajeTexto(from,
+        "Opción no valida, regresarás al menú principal.\n" +
+        "Elige un número o escribe la opción:\n" +
+        "1 - Comprar\n" +
+        "2 - Consultar\n" +
+        "3 - Salir"
+      );
+      estado.pasoActual = "eligiendoOpcion";
+    }
+  }
+
+  if (estado.pasoActual === "comprarTableta") {
+    if (text.includes("si")) {
+      // 3.1.2.2.1 Respondiendo "Si" a la compra
+      await enviarMensajeTexto(from,
+        "¡Gracias! Compra realizada."
+      );
+      delete estadoUsuario[from];
+    } else if (text.includes("no")) {
+      // 3.1.2.2.2 Respondiendo "No" a la compra
+      await enviarMensajeTexto(from,
+        "Esta bien. ¡Gracias por visitarnos!"
+      );
+      delete estadoUsuario[from];
+    } else {
+      await enviarMensajeTexto(from,
+        "Opción no valida, regresarás al menú principal.\n" +
+        "Elige un número o escribe la opción:\n" +
+        "1 - Comprar\n" +
+        "2 - Consultar\n" +
+        "3 - Salir"
+      );
+    }
+  }
+
+  // Definiendo el flujo de comprar categoria electrónica
 
   return; // Detenemos el flujo.
 }
